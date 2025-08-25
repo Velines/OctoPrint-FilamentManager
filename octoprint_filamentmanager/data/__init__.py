@@ -293,7 +293,7 @@ class FilamentManager(object):
             stmt = select([self.selections, self.spools, self.profiles]).select_from(j2)\
                 .where(self.selections.c.client_id == client_id).order_by(self.selections.c.tool)
         result = self.conn.execute(stmt)
-        return [self._build_selection_dict(row, row.keys()) for row in result.fetchall()]
+        return [self._build_selection_dict(row, tuple(k for k in row.keys())) for row in result.fetchall()]
 
     def get_selection(self, identifier, client_id):
         with self.lock, self.conn.begin():
@@ -303,7 +303,7 @@ class FilamentManager(object):
                 .where((self.selections.c.tool == identifier) & (self.selections.c.client_id == client_id))
         result = self.conn.execute(stmt)
         row = result.fetchone()
-        return self._build_selection_dict(row, row.keys()) if row is not None else dict(tool=identifier, spool=None)
+        return self._build_selection_dict(row, tuple(k for k in row.keys())) if row is not None else dict(tool=identifier, spool=None)
 
     def update_selection(self, identifier, client_id, data):
         with self.lock, self.conn.begin():
